@@ -46,6 +46,9 @@ public:
     QByteArray dataAudio() const;
     void setDataAudio(const QByteArray &newDataAudio);
 
+    std::shared_ptr<QMediaRecorder> recorder() const;
+    void setRecorder(const std::shared_ptr<QMediaRecorder> &newRecorder);
+
 signals:
     void BufferRead();
 

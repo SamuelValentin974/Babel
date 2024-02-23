@@ -83,29 +83,6 @@ void MainWindow::udp_errorOccurred(QAbstractSocket::SocketError error)
     ui->LstConsole->addItem(metaEnum.valueToKey(error));
 }
 
-void MainWindow::udp_DataReady(QByteArray array)
-{
-    if (_controller->inCall()) {
-        QByteArray buffer;
-        _audio->player()->setAudioOutput(_audio->output().get());
-        qint64 size = _udpController->socket()->pendingDatagramSize();
-        qDebug() << "size = " << size;
-        buffer.resize(size);
-
-        QHostAddress sender;
-        quint16 port = 0;
-        _udpController->socket()->readDatagram(buffer.data(), buffer.size(), &sender, &port);
-        qDebug() << "BUFFER SIZE : " << buffer.size();
-        std::string str(buffer, buffer.length());
-        _audio->player()->setSource(QUrl::fromEncoded(buffer));
-        _audio->player()->play();
-        if (!str.empty()) {
-            qDebug() << "Message from: " << sender.toString();
-            qDebug() << "Message port: " << port;
-        }
-    }
-}
-
 void MainWindow::ReadBufferDecoder()
 {
     QAudioBuffer buffer = _audio->decoder()->read();
@@ -134,19 +111,19 @@ void MainWindow::tcp_SendAudio()
                 QByteArray arr = file.read(firstchunk);
                 nb += _controller->socket()->write(strAudio + arr);
                 qDebug() << "DataSent, bytes wrote : " << nb;
-                if (!_controller->socket()->waitForBytesWritten()) {
+                /*if (!_controller->socket()->waitForBytesWritten()) {
                     qDebug() << "Error With wait audio sent";
                     return;
-                }
+                }*/
                 i++;
             } else {
                 QByteArray arr = file.read(chunksize);
                 nb += _controller->socket()->write(arr);
                 qDebug() << "DataSent, bytes wrote : " << nb;
-                if (!_controller->socket()->waitForBytesWritten()) {
+                /*if (!_controller->socket()->waitForBytesWritten()) {
                     qDebug() << "Error With wait audio sent";
                     return;
-                }
+                }*/
             }
         }
         file.close();
@@ -170,13 +147,13 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
             }
         }
         buff = str;
-        while (_controller->socket()->waitForReadyRead()) {
-            while (_controller->socket()->bytesAvailable() > 0) {
-                str = _controller->socket()->readAll();
-                buff += str;
-                qDebug() << "Looping readaudio tcp";
-            }
-        }
+        // while (_controller->socket()->waitForReadyRead()) {
+        //     while (_controller->socket()->bytesAvailable() > 0) {
+        //         str = _controller->socket()->readAll();
+        //         buff += str;
+        //         qDebug() << "Looping readaudio tcp";
+        //     }
+        // }
         if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Append)) {
             qDebug() << "file couldn't be opened";
             throw std::exception();
@@ -189,16 +166,16 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
         target.close();
         _controller->setReceivingData(false);
         ListenAudio();
-        qDebug() << "Bytes written to file : " << bytesWritten;
-        qDebug() << "File size sent = " << target.size();
+        //qDebug() << "Bytes written to file : " << bytesWritten;
+        //qDebug() << "File size sent = " << target.size();
         /*QMediaPlayer sound;
         sound.setAudioOutput(_audio->output().get());
         sound.setSource(QUrl::fromEncoded(buff));
-        //QUrl::fromEncoded(str)
         sound.play();*/
-        /*_audio->player()->setAudioOutput(_audio->output().get());
+        //QUrl::fromEncoded(str)
+        /*audio->player()->setAudioOutput(_audio->output().get());
         _audio->output()->setVolume(25);
-        _audio->player()->setPosition(0);
+        //_audio->player()->setPosition(0);
         _audio->player()->setSource(QUrl::fromEncoded(buff));
         _audio->player()->play();*/
     }
@@ -223,6 +200,16 @@ void MainWindow::on_BtnLst_clicked()
     _audio->player()->play();
 }
 
+bool MainWindow::isMuted() const
+{
+    return _isMuted;
+}
+
+void MainWindow::setIsMuted(bool newIsMuted)
+{
+    _isMuted = newIsMuted;
+}
+
 void MainWindow::OpenFile()
 {
     qDebug("In open filke");
@@ -240,6 +227,29 @@ void MainWindow::OpenFile()
     }
 
     infile.close(); // Close the file
+}
+
+void MainWindow::udp_DataReady(QByteArray array)
+{
+    if (_controller->inCall()) {
+        QByteArray buffer;
+        _audio->player()->setAudioOutput(_audio->output().get());
+        qint64 size = _udpController->socket()->pendingDatagramSize();
+        qDebug() << "size = " << size;
+        buffer.resize(size);
+
+        QHostAddress sender;
+        quint16 port = 0;
+        _udpController->socket()->readDatagram(buffer.data(), buffer.size(), &sender, &port);
+        qDebug() << "BUFFER SIZE : " << buffer.size();
+        std::string str(buffer, buffer.length());
+        _audio->player()->setSource(QUrl::fromEncoded(buffer));
+        _audio->player()->play();
+        if (!str.empty()) {
+            qDebug() << "Message from: " << sender.toString();
+            qDebug() << "Message port: " << port;
+        }
+    }
 }
 
 void MainWindow::udp_SendDatas()
@@ -299,6 +309,60 @@ void MainWindow::SendBackIp(QString elem)
         _udpController->setSentAddr(true);
     }
     _controller->setInCall(true);
+    _timer = std::make_shared<QTimer>(this);
+    connect(_timer.get(), &QTimer::timeout, this, &MainWindow::TimerSendData);
+    _timer->start(475);
+    _audio->RecordAudio();
+    _audio->setIsRecording(true);
+}
+
+void MainWindow::TimerSendData()
+{
+    if (!_isMuted && _controller->inCall()) {
+        _audio->StopRecord();
+        _audio->setIsRecording(false);
+        QString path = "./test.wav";
+        QFile file(path);
+        int i = 0;
+        int nb = 0;
+        QByteArray strAudio = "Audio " + QString::number(_controller->callTo()).toUtf8() + " ";
+        const int chunksize = 8192;
+        const int firstchunk = 8192 - strAudio.size();
+        if (!file.open(QIODevice::ReadOnly)) {
+            qDebug() << "file couldn't be opened";
+            throw std::exception();
+        }
+
+
+        while(!file.atEnd() && nb < chunksize * 7) {
+            if (i == 0) {
+                QByteArray arr = file.read(firstchunk);
+                nb += _controller->socket()->write(strAudio + arr);
+                _controller->socket()->flush();
+                qDebug() << "DataSent, bytes wrote : " << nb;
+                // if (!_controller->socket()->waitForBytesWritten()) {
+                //     qDebug() << "Error With wait audio sent";
+                //     return;
+                // }
+                i++;
+            } else {
+                QByteArray arr = file.read(chunksize);
+                nb += _controller->socket()->write(arr);
+                _controller->socket()->flush();
+                qDebug() << "DataSent, bytes wrote : " << nb;
+                // if (!_controller->socket()->waitForBytesWritten()) {
+                //     qDebug() << "Error With wait audio sent";
+                //     return;
+                // }
+            }
+        }
+        QByteArray arr = file.read(chunksize);
+        nb += _controller->socket()->write(arr);
+        _controller->socket()->flush();
+        file.close();
+        _audio->RecordAudio();
+        _audio->setIsRecording(true);
+    }
 }
 
 void MainWindow::AddClientToLst(QString str)
@@ -431,6 +495,21 @@ void MainWindow::on_BtnRefuse_clicked()
     if (_controller->callTo() != -84) {
         _controller->socket()->write(("Refused " + QString::number(_controller->id()) + " " + QString::number(_controller->callTo()) + "\n").toUtf8());
         ui->LblFrom->setText("Refused call with client "  + QString::number(_controller->callTo()));
+    }
+}
+
+
+void MainWindow::on_BtnMute_clicked()
+{
+    _isMuted = !_isMuted;
+    if (_isMuted) {
+        ui->BtnMute->setText("Unmute");
+        if (_controller->inCall() &&  _audio->recorder()->recorderState() == QMediaRecorder::RecordingState)
+            _audio->StopRecord();
+    } else {
+        ui->BtnMute->setText("Mute");
+        if (_controller->inCall() && _audio->recorder()->recorderState() == QMediaRecorder::StoppedState)
+            _audio->RecordAudio();
     }
 }
 

@@ -323,6 +323,19 @@
          </rect>
         </property>
        </widget>
+       <widget class="QPushButton" name="BtnMute">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>150</y>
+          <width>87</width>
+          <height>26</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Mute</string>
+        </property>
+       </widget>
       </widget>
      </item>
     </layout>

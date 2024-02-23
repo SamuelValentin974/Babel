@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "DeviceController.h"
 #include "AudioController.h"
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,6 +34,12 @@ public:
     void tcp_ReadAudio(QByteArray str);
     void ListenAudio();
     void SendBackIp(QString elem);
+    bool isMuted() const;
+    void setIsMuted(bool newIsMuted);
+
+    bool isFirstListen() const;
+    void setIsFirstListen(bool newIsFirstListen);
+
 private slots:
     void on_BtnConnect_clicked();
 
@@ -62,11 +69,17 @@ private slots:
 
     void on_BtnLst_clicked();
 
+    void TimerSendData();
+    void on_BtnMute_clicked();
+
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<UdpController> _udpController;
     std::shared_ptr<DeviceController> _controller;
     std::shared_ptr<AudioController> _audio;
+    std::shared_ptr<QTimer> _timer;
+    bool _isFirstListen{};
+    bool _isMuted{};
 };
 
 #endif // MAINWINDOW_H

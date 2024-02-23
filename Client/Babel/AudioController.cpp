@@ -26,14 +26,14 @@ AudioController::AudioController(QObject *parent)
     _player = std::make_shared<QMediaPlayer>();
     _decoder = std::make_shared<QAudioDecoder>(this);
 
-    _recorder->setAudioSampleRate(48000);
-    _recorder->setAudioBitRate(32);
-    _recorder->setAudioChannelCount(2);
+    _recorder->setAudioSampleRate(16000);
+    _recorder->setAudioBitRate(8);
+    _recorder->setAudioChannelCount(1);
     _recorder->setMediaFormat(QMediaFormat::Wave);
     _recorder->setQuality(QMediaRecorder::NormalQuality);
     _recorder->setEncodingMode(QMediaRecorder::ConstantQualityEncoding);
     QAudioFormat desiredFormat;
-    desiredFormat.setChannelCount(2);
+    desiredFormat.setChannelCount(1);
     desiredFormat.setSampleFormat(QAudioFormat::Int16);
     desiredFormat.setSampleRate(44100);
 
@@ -99,6 +99,16 @@ void AudioController::handleError(QMediaRecorder::Error error)
 void AudioController::ReadDecoder()
 {
     emit(BufferRead());
+}
+
+std::shared_ptr<QMediaRecorder> AudioController::recorder() const
+{
+    return _recorder;
+}
+
+void AudioController::setRecorder(const std::shared_ptr<QMediaRecorder> &newRecorder)
+{
+    _recorder = newRecorder;
 }
 
 QByteArray AudioController::dataAudio() const

@@ -49,7 +49,6 @@ void MainWindow::ClientDataReceived(QByteArray message)
     QString str = (QString(message));
     _server->CheckClients();
     if (str.contains("Audio")) {
-        qDebug() << "Message size = " << message.size();
         SendAudio(_server, message);
     } else {
         foreach (auto elem, str.split("\n")) {
@@ -63,8 +62,7 @@ void MainWindow::ClientDataReceived(QByteArray message)
                 SendIp(_server, elem);
             }
         }
+        // ui->LstConsole->addItem(message);
     }
-    if (!message.contains("Audio"))
-        ui->LstConsole->addItem(message);
 }
 
