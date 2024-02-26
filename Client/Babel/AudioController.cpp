@@ -25,19 +25,22 @@ AudioController::AudioController(QObject *parent)
     _output = std::make_shared<QAudioOutput>();
     _player = std::make_shared<QMediaPlayer>();
     _decoder = std::make_shared<QAudioDecoder>(this);
+    _effect = std::make_shared<QSoundEffect>(this);
+    _effect->setVolume(25);
 
     _recorder->setAudioSampleRate(16000);
     _recorder->setAudioBitRate(8);
-    _recorder->setAudioChannelCount(1);
+    _recorder->setAudioChannelCount(2);
     _recorder->setMediaFormat(QMediaFormat::Wave);
     _recorder->setQuality(QMediaRecorder::NormalQuality);
     _recorder->setEncodingMode(QMediaRecorder::ConstantQualityEncoding);
-    QAudioFormat desiredFormat;
-    desiredFormat.setChannelCount(1);
-    desiredFormat.setSampleFormat(QAudioFormat::Int16);
-    desiredFormat.setSampleRate(44100);
 
+    QAudioFormat desiredFormat;
+    desiredFormat.setChannelCount(2);
+    desiredFormat.setSampleFormat(QAudioFormat::Int16);
+    desiredFormat.setSampleRate(16000);
     _decoder->setAudioFormat(desiredFormat);
+
     QString filePath = QDir(QCoreApplication::applicationDirPath()).filePath("test");
     QUrl fileUrl = QUrl::fromLocalFile(filePath);
     _recorder->setOutputLocation(fileUrl);
@@ -45,6 +48,7 @@ AudioController::AudioController(QObject *parent)
     _fileUrl = fileUrl;
     qDebug() << "Chemin du fichier de sortie :" << filePath;
     qDebug() << "URI du fichier de sortie :" << fileUrl.toString();
+
     _session->setAudioInput(_input.get());
     _session->setRecorder(_recorder.get());
     connect(_recorder.get(), &QMediaRecorder::errorOccurred, this, &AudioController::handleError);
@@ -99,6 +103,16 @@ void AudioController::handleError(QMediaRecorder::Error error)
 void AudioController::ReadDecoder()
 {
     emit(BufferRead());
+}
+
+std::shared_ptr<QSoundEffect> AudioController::effect() const
+{
+    return _effect;
+}
+
+void AudioController::setEffect(const std::shared_ptr<QSoundEffect> &newEffect)
+{
+    _effect = newEffect;
 }
 
 std::shared_ptr<QMediaRecorder> AudioController::recorder() const

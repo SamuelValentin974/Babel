@@ -40,6 +40,7 @@ public:
     bool isFirstListen() const;
     void setIsFirstListen(bool newIsFirstListen);
 
+    void ListenAudio(QByteArray array);
 private slots:
     void on_BtnConnect_clicked();
 

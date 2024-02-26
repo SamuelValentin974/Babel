@@ -49,6 +49,9 @@ public:
     std::shared_ptr<QMediaRecorder> recorder() const;
     void setRecorder(const std::shared_ptr<QMediaRecorder> &newRecorder);
 
+    std::shared_ptr<QSoundEffect> effect() const;
+    void setEffect(const std::shared_ptr<QSoundEffect> &newEffect);
+
 signals:
     void BufferRead();
 
@@ -63,6 +66,7 @@ private:
     std::shared_ptr<QAudioDecoder> _decoder;
     std::shared_ptr<QAudioOutput> _output;
     std::shared_ptr<QMediaPlayer> _player;
+    std::shared_ptr<QSoundEffect> _effect;
     QAudioBuffer _SendData;
     QByteArray _dataAudio;
     char *_ReceivedData;

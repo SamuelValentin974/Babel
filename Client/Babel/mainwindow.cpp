@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <QMetaEnum>
-
+#include <QSoundEffect>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -166,19 +166,19 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
         target.close();
         _controller->setReceivingData(false);
         ListenAudio();
-        //qDebug() << "Bytes written to file : " << bytesWritten;
-        //qDebug() << "File size sent = " << target.size();
-        /*QMediaPlayer sound;
-        sound.setAudioOutput(_audio->output().get());
-        sound.setSource(QUrl::fromEncoded(buff));
-        sound.play();*/
-        //QUrl::fromEncoded(str)
-        /*audio->player()->setAudioOutput(_audio->output().get());
-        _audio->output()->setVolume(25);
-        //_audio->player()->setPosition(0);
-        _audio->player()->setSource(QUrl::fromEncoded(buff));
-        _audio->player()->play();*/
+        qDebug() << "Bytes written to file : " << bytesWritten;
+        qDebug() << "File size sent = " << target.size();
     }
+}
+
+
+void MainWindow::ListenAudio(QByteArray array)
+{
+    _audio->player()->setAudioOutput(_audio->output().get());
+    _audio->output()->setVolume(25);
+    _audio->player()->setPosition(20);
+    _audio->player()->setSource(QUrl::fromEncoded(array));
+    _audio->player()->play();
 }
 
 void MainWindow::ListenAudio()
