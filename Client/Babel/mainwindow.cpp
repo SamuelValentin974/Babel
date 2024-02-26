@@ -184,7 +184,7 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
 void MainWindow::ListenAudio()
 {
     _audio->player()->setAudioOutput(_audio->output().get());
-    _audio->output()->setVolume(25);
+    _audio->output()->setVolume(50);
     _audio->player()->setPosition(0);
     _audio->player()->setSource(QUrl::fromLocalFile("./target.wav"));
     _audio->player()->play();

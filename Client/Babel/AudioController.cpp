@@ -33,7 +33,7 @@ AudioController::AudioController(QObject *parent)
     _recorder->setQuality(QMediaRecorder::NormalQuality);
     _recorder->setEncodingMode(QMediaRecorder::ConstantQualityEncoding);
     QAudioFormat desiredFormat;
-    desiredFormat.setChannelCount(1);
+    desiredFormat.setChannelCount(2);
     desiredFormat.setSampleFormat(QAudioFormat::Int16);
     desiredFormat.setSampleRate(44100);
 
