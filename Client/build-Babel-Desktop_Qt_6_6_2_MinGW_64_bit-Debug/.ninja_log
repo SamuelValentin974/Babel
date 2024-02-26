@@ -1,0 +1,13 @@
+# ninja log v5
+1	2338	7303986505162667	Babel_autogen/timestamp	f60cf8de1c1dd877
+1	2338	7303986505162667	Babel_autogen/mocs_compilation.cpp	f60cf8de1c1dd877
+1	2338	7303986505162667	C:/Users/DarkN/Documents/GitHub/Babel/Client/build-Babel-Desktop_Qt_6_6_2_MinGW_64_bit-Debug/Babel_autogen/timestamp	f60cf8de1c1dd877
+1	2338	7303986505162667	C:/Users/DarkN/Documents/GitHub/Babel/Client/build-Babel-Desktop_Qt_6_6_2_MinGW_64_bit-Debug/Babel_autogen/mocs_compilation.cpp	f60cf8de1c1dd877
+2356	10191	7303986584683929	CMakeFiles/Babel.dir/DeviceController.cpp.obj	19683913c8449157
+2370	10598	7303986588745672	CMakeFiles/Babel.dir/commands.cpp.obj	3b3f38aca5e91a1b
+2364	10751	7303986590261576	CMakeFiles/Babel.dir/udpcontroller.cpp.obj	11904bba7e54fe2e
+2352	10971	7303986592488354	CMakeFiles/Babel.dir/main.cpp.obj	d5a950330d651275
+2349	11339	7303986596150000	CMakeFiles/Babel.dir/Babel_autogen/mocs_compilation.cpp.obj	12f1fe5163927ec5
+2367	11545	7303986598204373	CMakeFiles/Babel.dir/AudioController.cpp.obj	deaa1c3da1fc28d3
+2359	12088	7303986603656367	CMakeFiles/Babel.dir/mainwindow.cpp.obj	a171f84b7620b16
+12089	13164	7303986614439788	Babel.exe	b47e121b81ee2dc9
