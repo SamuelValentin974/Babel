@@ -28,15 +28,15 @@ AudioController::AudioController(QObject *parent)
     _effect = std::make_shared<QSoundEffect>(this);
     _effect->setVolume(25);
 
-    _recorder->setAudioSampleRate(16000);
-    _recorder->setAudioBitRate(8);
-    _recorder->setAudioChannelCount(2);
+    _recorder->setAudioSampleRate(11025);
+    _recorder->setAudioBitRate(176);
+    _recorder->setAudioChannelCount(-1);
     _recorder->setMediaFormat(QMediaFormat::Wave);
-    _recorder->setQuality(QMediaRecorder::NormalQuality);
+    _recorder->setQuality(QMediaRecorder::VeryLowQuality);
     _recorder->setEncodingMode(QMediaRecorder::ConstantQualityEncoding);
 
     QAudioFormat desiredFormat;
-    desiredFormat.setChannelCount(2);
+    desiredFormat.setChannelCount(1);
     desiredFormat.setSampleFormat(QAudioFormat::Int16);
     desiredFormat.setSampleRate(16000);
     _decoder->setAudioFormat(desiredFormat);
