@@ -1,0 +1,12 @@
+# ninja log v5
+2	664	7307395049356681	BabelServer_autogen/timestamp	cdbdc9764f3f7a4e
+2	664	7307395049356681	BabelServer_autogen/mocs_compilation.cpp	cdbdc9764f3f7a4e
+2	664	7307395049356681	C:/Users/DarkN/Documents/GitHub/Babel/Server/build-BabelServer-Desktop_Qt_6_6_2_MinGW_64_bit-Debug/BabelServer_autogen/timestamp	cdbdc9764f3f7a4e
+2	664	7307395049356681	C:/Users/DarkN/Documents/GitHub/Babel/Server/build-BabelServer-Desktop_Qt_6_6_2_MinGW_64_bit-Debug/BabelServer_autogen/mocs_compilation.cpp	cdbdc9764f3f7a4e
+689	3568	7307395078992640	CMakeFiles/BabelServer.dir/User.cpp.obj	992df1ca4037d0fc
+693	3573	7307395079072629	CMakeFiles/BabelServer.dir/Commands.cpp.obj	de16f950a48a8cc3
+682	3689	7307395080301220	CMakeFiles/BabelServer.dir/main.cpp.obj	1e673e26b59dc12b
+673	3893	7307395082332719	CMakeFiles/BabelServer.dir/BabelServer_autogen/mocs_compilation.cpp.obj	e8b76c7dcffc165c
+685	4241	7307395085805383	CMakeFiles/BabelServer.dir/udpserver.cpp.obj	5ab0bf3a61684df4
+677	4481	7307395088229846	CMakeFiles/BabelServer.dir/mainwindow.cpp.obj	856a0b7ebd128e4e
+4482	5002	7307395093380513	BabelServer.exe	d310c6cdfc11e3f2
