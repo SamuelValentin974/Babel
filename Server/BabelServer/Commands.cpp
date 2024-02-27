@@ -121,3 +121,31 @@ void SendAudio(std::shared_ptr<UDPServer> _server,  QByteArray str)
     // qDebug() << "Bytes written after loop = " << bytesWritten;
     userTo->socket()->flush();
 }
+
+void SendRecord(std::shared_ptr<UDPServer> _server,  QByteArray str)
+{
+    QString line = QString(str);
+    qint64 bytesWritten = 0;
+    int idTo = line.section(" ", 1, 1).toInt();
+    auto userTo = _server->GetUserFromId(idTo);
+    auto userFrom = _server->GetUserFromId(userTo->callingTo());
+
+    if (!userTo) {
+        qDebug() << "Users not found";
+        return;
+    }
+    bytesWritten = userTo->socket()->write(str);
+    qDebug() << "Bytes written before loop = " << bytesWritten;
+    while (userFrom->socket()->waitForReadyRead()) {
+        while (userFrom->socket()->bytesAvailable() > 0) {
+            QByteArray buffer = userFrom->socket()->readAll();
+            bytesWritten += userTo->socket()->write(buffer);
+            if (bytesWritten == -1) {
+                qDebug() << "Erreur lors de l'écriture des données dans le fichier audio : " << userTo->socket()->errorString();
+                return;
+            }
+            qDebug() << "Looping";
+        }
+    }
+    qDebug() << "Bytes written after loop = " << bytesWritten;
+}

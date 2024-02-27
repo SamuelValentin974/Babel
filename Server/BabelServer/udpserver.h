@@ -49,5 +49,6 @@ void RefuseCall(std::shared_ptr<UDPServer> _server,  QString str);
 void AcceptCall(std::shared_ptr<UDPServer> _server,  QString str);
 void SendAudio(std::shared_ptr<UDPServer> _server,  QByteArray str);
 void SendEnd(std::shared_ptr<UDPServer> _server,  QString str);
+void SendRecord(std::shared_ptr<UDPServer> _server,  QByteArray str);
 
 #endif // UDPSERVER_H

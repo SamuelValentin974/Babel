@@ -5,14 +5,15 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <QTemporaryFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    _audio = std::make_shared<AudioController>();
-    _udpController = std::make_shared<UdpController>();
+    _audio = std::make_shared<AudioController>(this);
+    _udpController = std::make_shared<UdpController>(this);
     SetDeviceController();
     foreach (auto device, QMediaDevices::audioInputs())
         ui->CBInputs->addItem(device.description());
@@ -99,7 +100,7 @@ void MainWindow::tcp_SendAudio()
         QFile file(path);
         int i = 0;
         int nb = 0;
-        QByteArray strAudio = "Audio " + QString::number(_controller->callTo()).toUtf8() + " ";
+        QByteArray strAudio = "Record " + QString::number(_controller->callTo()).toUtf8() + " ";
         const int chunksize = 8192;
         const int firstchunk = 8192 - strAudio.size();
         if (!file.open(QIODevice::ReadOnly)) {
@@ -111,19 +112,19 @@ void MainWindow::tcp_SendAudio()
                 QByteArray arr = file.read(firstchunk);
                 nb += _controller->socket()->write(strAudio + arr);
                 qDebug() << "DataSent, bytes wrote : " << nb;
-                /*if (!_controller->socket()->waitForBytesWritten()) {
+                if (!_controller->socket()->waitForBytesWritten()) {
                     qDebug() << "Error With wait audio sent";
                     return;
-                }*/
+                }
                 i++;
             } else {
                 QByteArray arr = file.read(chunksize);
                 nb += _controller->socket()->write(arr);
                 qDebug() << "DataSent, bytes wrote : " << nb;
-                /*if (!_controller->socket()->waitForBytesWritten()) {
+                if (!_controller->socket()->waitForBytesWritten()) {
                     qDebug() << "Error With wait audio sent";
                     return;
-                }*/
+                }
             }
         }
         file.close();
@@ -147,13 +148,47 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
             }
         }
         buff = str;
-        // while (_controller->socket()->waitForReadyRead()) {
-        //     while (_controller->socket()->bytesAvailable() > 0) {
-        //         str = _controller->socket()->readAll();
-        //         buff += str;
-        //         qDebug() << "Looping readaudio tcp";
-        //     }
-        // }
+        if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Append)) {
+            qDebug() << "file couldn't be opened";
+            throw std::exception();
+        }
+        bytesWritten = target.write(buff);
+        if (bytesWritten == -1) {
+            qDebug() << "Erreur lors de l'écriture des données dans le fichier audio : " << target.errorString();
+            return;
+        }
+        target.close();
+        _controller->setReceivingData(false);
+        ListenAudio();
+        qDebug() << "Bytes written to file : " << bytesWritten;
+        qDebug() << "File size sent = " << target.size();
+    }
+}
+
+void MainWindow::tcp_ReadRecord(QByteArray str)
+{
+    if (_controller->inCall()) {
+        QString targetPath = QDir(QCoreApplication::applicationDirPath()).filePath("target.wav");
+        QFile target(targetPath);
+        qint64 bytesWritten = 0;
+        int firstindex = str.indexOf(" ");
+        QByteArray buff;
+
+        if (str.contains("Record")) {
+            if (firstindex != -1) {
+                int secondindex = str.indexOf(" ", firstindex + 1);
+                if (secondindex != -1)
+                    str.remove(0, secondindex + 1);
+            }
+        }
+        buff = str;
+        while (_controller->socket()->waitForReadyRead()) {
+            while (_controller->socket()->bytesAvailable() > 0) {
+                str = _controller->socket()->readAll();
+                buff += str;
+                qDebug() << "Looping readaudio tcp";
+            }
+        }
         if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Append)) {
             qDebug() << "file couldn't be opened";
             throw std::exception();
@@ -172,13 +207,23 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
 }
 
 
+
 void MainWindow::ListenAudio(QByteArray array)
 {
-    _audio->player()->setAudioOutput(_audio->output().get());
-    _audio->output()->setVolume(25);
-    _audio->player()->setPosition(20);
-    _audio->player()->setSource(QUrl::fromEncoded(array));
-    _audio->player()->play();
+    QTemporaryFile tempfile;
+    if (tempfile.open()){
+        tempfile.write(array);
+        tempfile.close();
+        QUrl fileUrl = QUrl::fromLocalFile(tempfile.fileName());
+
+        _audio->player()->setAudioOutput(_audio->output().get());
+        _audio->player()->setSource(fileUrl);
+        _audio->output()->setVolume(50);
+        _audio->player()->setPosition(20);
+        _audio->player()->play();
+    } else {
+        qDebug() << "problème avec le fichier temporaire";
+    }
 }
 
 void MainWindow::ListenAudio()
@@ -293,6 +338,8 @@ void MainWindow::device_dataReady(QByteArray array)
                 CallAccepted(elem);
             else if (elem.contains("IP"))
                 SendBackIp(elem);
+            else if (elem.contains("Record"))
+                tcp_ReadRecord(array);
             else if (_controller->ReceivingData())
                 tcp_ReadAudio(array);
         }
@@ -312,8 +359,10 @@ void MainWindow::SendBackIp(QString elem)
     _timer = std::make_shared<QTimer>(this);
     connect(_timer.get(), &QTimer::timeout, this, &MainWindow::TimerSendData);
     _timer->start(475);
-    _audio->RecordAudio();
-    _audio->setIsRecording(true);
+    if (!_isMuted) {
+        _audio->RecordAudio();
+        _audio->setIsRecording(true);
+    }
 }
 
 void MainWindow::TimerSendData()
@@ -513,3 +562,61 @@ void MainWindow::on_BtnMute_clicked()
     }
 }
 
+void MainWindow::KeyPressed()
+{
+
+}
+
+void MainWindow::KeyReleased()
+{
+
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    qDebug() << "Key pressed" << (char)event->key() << "<-";
+}
+
+bool MainWindow::event(QEvent *event)
+{
+    if (event->type() == event->KeyPress) {
+        QKeyEvent *ev = static_cast<QKeyEvent *>(event);
+        if (ev->key() == '&') {
+            if (!_isPushed) {
+                _isPushed = true;
+                _audio->RecordAudio();
+                qDebug() << "Key Pressed !";
+            }
+            return true;
+        }
+    } else if (event->type() == event->KeyRelease) {
+        QKeyEvent *ev = static_cast<QKeyEvent *>(event);
+        if (ev->key() == '&') {
+            _isPushed = false;
+            _audio->StopRecord();
+            qDebug() << "Key released !";
+        }
+        return true;
+    }
+    return QMainWindow::event(event);
+}
+
+bool MainWindow::isPushed() const
+{
+    return _isPushed;
+}
+
+void MainWindow::setIsPushed(bool newIsPushed)
+{
+    _isPushed = newIsPushed;
+}
+
+std::shared_ptr<InputControl> MainWindow::inputs() const
+{
+    return _inputs;
+}
+
+void MainWindow::setInputs(const std::shared_ptr<InputControl> &newInputs)
+{
+    _inputs = newInputs;
+}

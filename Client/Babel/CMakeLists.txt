@@ -29,6 +29,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         AudioController.h AudioController.cpp
         commands.cpp
         udpcontroller.h udpcontroller.cpp
+        inputcontrol.h inputcontrol.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Babel APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

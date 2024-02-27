@@ -48,9 +48,11 @@ void MainWindow::ClientDataReceived(QByteArray message)
 {
     QString str = (QString(message));
     _server->CheckClients();
-    if (str.contains("Audio")) {
+    if (str.contains("Audio"))
         SendAudio(_server, message);
-    } else {
+    else if (str.contains("Record"))
+            SendRecord(_server, message);
+    else {
         foreach (auto elem, str.split("\n")) {
             if (elem.section(" ", 0, 0) == "Calling") {
                 CallClient(_server, elem);

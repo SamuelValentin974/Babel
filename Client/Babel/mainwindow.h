@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "DeviceController.h"
 #include "AudioController.h"
+#include "inputcontrol.h"
 #include <QTimer>
 
 QT_BEGIN_NAMESPACE
@@ -41,6 +42,13 @@ public:
     void setIsFirstListen(bool newIsFirstListen);
 
     void ListenAudio(QByteArray array);
+    std::shared_ptr<InputControl> inputs() const;
+    void setInputs(const std::shared_ptr<InputControl> &newInputs);
+
+    bool isPushed() const;
+    void setIsPushed(bool newIsPushed);
+
+    void tcp_ReadRecord(QByteArray str);
 private slots:
     void on_BtnConnect_clicked();
 
@@ -73,12 +81,21 @@ private slots:
     void TimerSendData();
     void on_BtnMute_clicked();
 
+    void KeyPressed();
+    void KeyReleased();
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
+    bool event(QEvent *event);
+
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<UdpController> _udpController;
     std::shared_ptr<DeviceController> _controller;
     std::shared_ptr<AudioController> _audio;
     std::shared_ptr<QTimer> _timer;
+    std::shared_ptr<InputControl> _inputs;
+    bool _isPushed{};
     bool _isFirstListen{};
     bool _isMuted{};
 };
