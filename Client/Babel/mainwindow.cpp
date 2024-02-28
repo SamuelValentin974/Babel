@@ -134,11 +134,7 @@ void MainWindow::tcp_SendAudio()
 void MainWindow::tcp_ReadAudio(QByteArray str)
 {
     if (_controller->inCall()) {
-        QString targetPath = QDir(QCoreApplication::applicationDirPath()).filePath("target.wav");
-        QFile target(targetPath);
-        qint64 bytesWritten = 0;
         int firstindex = str.indexOf(" ");
-        QByteArray buff;
 
         if (str.contains("Audio")) {
             if (firstindex != -1) {
@@ -147,21 +143,9 @@ void MainWindow::tcp_ReadAudio(QByteArray str)
                     str.remove(0, secondindex + 1);
             }
         }
-        buff = str;
-        if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Append)) {
-            qDebug() << "file couldn't be opened";
-            throw std::exception();
-        }
-        bytesWritten = target.write(buff);
-        if (bytesWritten == -1) {
-            qDebug() << "Erreur lors de l'écriture des données dans le fichier audio : " << target.errorString();
-            return;
-        }
-        target.close();
+        _audio->AddBuffer(str);
+        _audio->RefreshBuffer();
         _controller->setReceivingData(false);
-        ListenAudio();
-        qDebug() << "Bytes written to file : " << bytesWritten;
-        qDebug() << "File size sent = " << target.size();
     }
 }
 

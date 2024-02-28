@@ -105,6 +105,59 @@ void AudioController::ReadDecoder()
     emit(BufferRead());
 }
 
+std::vector<QByteArray> AudioController::buffers() const
+{
+    return _buffers;
+}
+
+void AudioController::AddBuffer(QByteArray arr)
+{
+    _buffers.push_back(arr);
+}
+
+void AudioController::DelFrontBuffer(QByteArray arr)
+{
+    _buffers.erase(_buffers.begin());
+}
+
+void AudioController::RefreshBuffer()
+{
+    // if (_player->playbackState() == QMediaPlayer::StoppedState) {
+    if (_player->isAvailable()) {
+        if (!_buffers.empty())
+            _buffers.erase(_buffers.begin());
+        QString targetPath = QDir(QCoreApplication::applicationDirPath()).filePath("target.wav");
+        QFile target(targetPath);
+        qint64 bytesWritten = 0;
+        QByteArray str = _buffers.front();
+        if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Append)) {
+            qDebug() << "file couldn't be opened";
+            throw std::exception();
+        }
+        bytesWritten = target.write(str);
+        if (bytesWritten == -1) {
+            qDebug() << "Erreur lors de l'écriture des données dans le fichier audio : " << target.errorString();
+            return;
+        }
+        target.close();
+        ListenAudio();
+    }
+}
+
+void AudioController::ListenAudio()
+{
+    _player->setAudioOutput(_output.get());
+    _output->setVolume(50);
+    _player->setPosition(0);
+    _player->setSource(QUrl::fromLocalFile("./target.wav"));
+    _player->play();
+}
+
+void AudioController::setBuffers(const std::vector<QByteArray> &newBuffers)
+{
+    _buffers = newBuffers;
+}
+
 std::shared_ptr<QSoundEffect> AudioController::effect() const
 {
     return _effect;
